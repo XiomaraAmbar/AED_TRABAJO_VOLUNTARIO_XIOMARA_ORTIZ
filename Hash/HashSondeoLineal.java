@@ -1,27 +1,23 @@
 package Hash;
 
-import LinkedList.ListaEnlazada;
-import LinkedList.MensajeException;
-
 import java.util.ArrayList;
 
-public class HashEncadenamiento<E> {
-    private ArrayList<ListaEnlazada<E>> listaHash; //Tabla con listas enlazadas
-    private int capacidad; //Capacidad de la tabla hash
-    private int modulo; //Tamaño de la tabla para función hash
-    private int contadorElementos; //Contador de elementos totales
-    private final double factorCargaMaximo = 0.75; //Factor de carga máximo
+public class HashSondeoLineal<E> {
+    private ArrayList<E> listaHash; //Tabla hash con sondeo lineal
+    private int modulo; //Tamaño de la lista y modulo
+    private int contadorElementos;
+    private int capacidad;
+    private final double factorCargaMaximo = 0.75;
 
-    public HashEncadenamiento(int capacidad) {
+    public HashSondeoLineal(int capacidad){
         this.capacidad = capacidad;
         this.modulo = siguientePrimo(capacidad);
-        this.listaHash = new ArrayList<>(this.capacidad);
+        this.listaHash = new ArrayList<E>(capacidad);
         this.contadorElementos = 0;
 
-        //Inicializar cada posición con una lista enlazada vacía
-        for (int i = 0; i < this.capacidad; i++) {
-            this.listaHash.add(new ListaEnlazada<E>());
-        }
+        //Inicializar tabla con valores null
+        for (int i = 0; i < capacidad; i++)
+            this.listaHash.add(null);
     }
 
     //Método para encontrar el siguiente número primo mayor o igual a n
@@ -69,15 +65,15 @@ public class HashEncadenamiento<E> {
             indice = metodoSuma((String) clave);
         }
         else {
-            // Usar hashCode() para otros tipos
-            indice = clave.hashCode();
+            System.out.println("Tipo de clave no soportado");
+            return -1; //Valor de error
         }
 
         indice = Math.abs(indice) % modulo;
         return ajustarIndice(indice);
     }
 
-    //Método por Pliegue para números
+    //Método por Pliegue
     public int metodoPliegue(long clave) {
         String numeroCadena = String.valueOf(clave);
         int suma = 0;
@@ -101,7 +97,6 @@ public class HashEncadenamiento<E> {
         return suma;
     }
 
-    //Método de suma para strings
     public int metodoSuma(String clave) {
         int suma = 0;
         for (int i = 0; i < clave.length(); i++) {
@@ -119,11 +114,11 @@ public class HashEncadenamiento<E> {
     }
 
     /***********************************************************************************
-     * MÉTODOS PRINCIPALES DE LA TABLA HASH
+     * MÉTODO INSERTAR CLAVE EN TABLA HASH
      ***********************************************************************************/
 
-    //Método para insertar una clave
-    public boolean insertarClave(E clave) throws MensajeException {
+    //Método para insertar un elemento en la tabla hash
+    public boolean insertar(E clave) {
         if (clave == null) return false;
 
         //Verificar si necesitamos rehashing antes de insertar
@@ -131,38 +126,76 @@ public class HashEncadenamiento<E> {
             rehashing();
         }
 
-        int indice = principal(clave); // Calcular posición
-        ListaEnlazada<E> listaTemporal = listaHash.get(indice); // Obtener lista correspondiente
+        int indice = principal(clave);
+        if (indice == -1) return false; //Tipo no soportado
 
-        listaTemporal.insertLast(clave); // Insertar siempre (permitir duplicados)
+        //Sondeo lineal para encontrar posición libre
+        int indiceOriginal = indice;
+        while (listaHash.get(indice) != null) {
+            //Si el elemento ya existe, no lo insertamos
+            if (listaHash.get(indice).equals(clave)) {
+                return false;
+            }
+            indice = (indice + 1) % modulo;
+
+            //Si hemos dado una vuelta completa, la tabla está llena
+            if (indice == indiceOriginal) {
+                return false;
+            }
+        }
+
+        // Insertar el elemento
+        listaHash.set(indice, clave);
         contadorElementos++;
         return true;
     }
 
-    //Método para buscar una clave
-    public boolean buscarClave(E clave) {
+    //Método para buscar un elemento
+    public boolean buscar(E clave) {
         if (clave == null) return false;
 
-        int indice = principal(clave); //Calcular posición
-        return listaHash.get(indice).contains(clave); //Buscar en lista correspondiente
+        int indice = principal(clave);
+        if (indice == -1) return false;
+
+        int indiceOriginal = indice;
+        while (listaHash.get(indice) != null) {
+            if (listaHash.get(indice).equals(clave)) {
+                return true;
+            }
+            indice = (indice + 1) % modulo;
+
+            if (indice == indiceOriginal) {
+                break;
+            }
+        }
+        return false;
     }
 
-    //Método para eliminar una clave
-    public boolean eliminarClave(E clave) {
+    //Método para eliminar un elemento (versión simple)
+    public boolean eliminar(E clave) {
         if (clave == null) return false;
 
-        int indice = principal(clave); //Calcular posición
-        ListaEnlazada<E> listaTemporal = listaHash.get(indice); //Obtener lista
-        try {
-            if (listaTemporal.contains(clave)) { //Verificar existencia
-                listaTemporal.removeNode(clave); //Eliminar de la lista
+        int indice = principal(clave);
+        if (indice == -1) return false;
+
+        //Buscar el elemento recorriendo toda la tabla si es necesario
+        for (int i = 0; i < modulo; i++) {
+            int indiceActual = (indice + i) % modulo;
+
+            if (listaHash.get(indiceActual) == null) {
+                //Llegamos a un espacio vacío, el elemento no existe
+                return false;
+            }
+
+            if (listaHash.get(indiceActual).equals(clave)) {
+                //Encontramos el elemento, lo eliminamos
+                listaHash.set(indiceActual, null);
                 contadorElementos--;
                 return true;
             }
-            return false;
-        } catch (MensajeException e) {
-            return false; //Error en eliminación
         }
+
+        return false; //No encontrado después de recorrer toda la tabla
     }
 
     //Método para redimensionar la tabla (rehashing)
@@ -170,34 +203,27 @@ public class HashEncadenamiento<E> {
         System.out.println("Rehashing... Factor de carga: " + factorCarga());
 
         //Guardar la tabla actual
-        ArrayList<ListaEnlazada<E>> tablaAnterior = new ArrayList<>(listaHash);
+        ArrayList<E> tablaAnterior = new ArrayList<>(listaHash);
 
         //Duplicar la capacidad y encontrar el siguiente primo
         int nuevaCapacidad = capacidad * 2;
-        this.capacidad = siguientePrimo(nuevaCapacidad);
-        this.modulo = this.capacidad;
-        this.contadorElementos = 0;
+        int nuevoModulo = siguientePrimo(nuevaCapacidad);
 
         //Crear nueva tabla
-        this.listaHash = new ArrayList<ListaEnlazada<E>>(this.capacidad);
+        this.capacidad = nuevaCapacidad;
+        this.modulo = nuevoModulo;
+        this.listaHash = new ArrayList<E>(capacidad);
+        this.contadorElementos = 0;
 
-        //Inicializar nueva tabla con listas vacías
-        for (int i = 0; i < this.capacidad; i++) {
-            this.listaHash.add(new ListaEnlazada<E>());
+        //Inicializar nueva tabla con null
+        for (int i = 0; i < capacidad; i++) {
+            this.listaHash.add(null);
         }
 
         //Reinsertar todos los elementos de la tabla anterior
-        for (ListaEnlazada<E> lista : tablaAnterior) {
-            if (!lista.isEmpty()) {
-                try {
-                    //Recorrer cada elemento de la lista
-                    for (int i = 0; i < lista.length(); i++) {
-                        E elemento = lista.searchK(i);
-                        insertarSinVerificarCarga(elemento);
-                    }
-                } catch (MensajeException e) {
-                    System.err.println("Error durante rehashing: " + e.getMessage());
-                }
+        for (E elemento : tablaAnterior) {
+            if (elemento != null) {
+                insertarSinVerificarCarga(elemento);
             }
         }
 
@@ -205,32 +231,42 @@ public class HashEncadenamiento<E> {
     }
 
     //Método auxiliar para insertar sin verificar carga (usado en rehashing)
-    private boolean insertarSinVerificarCarga(E clave) throws MensajeException {
+    private boolean insertarSinVerificarCarga(E clave) {
         if (clave == null) return false;
 
         int indice = principal(clave);
-        ListaEnlazada<E> listaTemporal = listaHash.get(indice);
+        if (indice == -1) return false;
 
-        listaTemporal.insertLast(clave);
+        //Sondeo lineal para encontrar posición libre
+        int indiceOriginal = indice;
+        while (listaHash.get(indice) != null) {
+            //Si el elemento ya existe, no lo insertamos
+            if (listaHash.get(indice).equals(clave)) {
+                return false;
+            }
+            indice = (indice + 1) % modulo;
+
+            //Si hemos dado una vuelta completa, la tabla está llena
+            if (indice == indiceOriginal) {
+                return false;
+            }
+        }
+
+        // Insertar el elemento
+        listaHash.set(indice, clave);
         contadorElementos++;
         return true;
     }
 
     //Método para mostrar la tabla
     public void mostrarTabla() {
-        System.out.println("Tabla Hash con Encadenamiento:");
+        System.out.println("Tabla Hash:");
         System.out.println("Capacidad: " + capacidad);
         System.out.println("Elementos: " + contadorElementos);
         System.out.println("Factor de carga: " + String.format("%.2f", factorCarga()));
         System.out.println("------------------------");
-
         for (int i = 0; i < listaHash.size(); i++) {
-            System.out.print("Bucket " + i + ": ");
-            if (listaHash.get(i).isEmpty()) {
-                System.out.println("[VACÍO]");
-            } else {
-                System.out.println(listaHash.get(i).toString());
-            }
+            System.out.println("Índice " + i + ": " + listaHash.get(i));
         }
     }
 
