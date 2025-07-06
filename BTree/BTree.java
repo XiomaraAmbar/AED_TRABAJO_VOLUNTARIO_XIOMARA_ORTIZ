@@ -1,6 +1,6 @@
 package BTree;
 
-import LinkedList.Cola;
+import Queue.Cola;
 import LinkedList.MensajeException;
 
 public class BTree<E extends Comparable<E>> {

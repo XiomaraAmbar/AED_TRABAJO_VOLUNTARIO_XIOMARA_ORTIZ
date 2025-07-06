@@ -3,35 +3,43 @@ package BTreePlus;
 import java.util.ArrayList;
 
 public class BNodePlus<E extends Comparable<E>> {
-    //True para nodos hoja, False para nodos internos
+    //Define si el nodo es una hoja terminal o un nodo interno del árbol
     protected boolean esHoja;
-    protected ArrayList<E> claves; //Las claves almacenadas
-    protected ArrayList<BNodePlus<E>> hijos; //Nodos hijos
-    protected BNodePlus<E> siguiente; //Enlace al siguiente nodo hoja
-    protected int contadorClaves; //Contador de claves del nodo
-    protected int orden; //Orden del árbol
+    //Almacena las claves del nodo en orden ascendente usando ArrayList
+    protected ArrayList<E> claves;
+    //Contiene referencias a los nodos hijos para navegación en nodos internos
+    protected ArrayList<BNodePlus<E>> hijos;
+    //Enlaza horizontalmente los nodos hoja para recorrido secuencial
+    protected BNodePlus<E> siguiente;
+    //Cuenta el número actual de claves almacenadas en el nodo
+    protected int contadorClaves;
+    //Define el orden máximo del árbol B+ que determina capacidad del nodo
+    protected int orden;
 
-    //Identificación única para nodos
+    //Genera identificadores únicos incrementales para cada nodo creado
     private static int contadorId = 0;
+    //Almacena el identificador único asignado a este nodo específico
     private int idNodo;
 
-    //Constructor para inicializar un nodo
+    //Inicializa un nuevo nodo configurando su tipo y capacidades según el orden
     public BNodePlus(boolean esHoja, int orden) {
         this.esHoja = esHoja;
         this.orden = orden;
+        //Crea lista de claves con capacidad máxima de orden-1 elementos
         this.claves = new ArrayList<>(orden - 1);
+        //Crea lista de hijos con capacidad máxima de orden elementos
         this.hijos = new ArrayList<>(orden);
         this.siguiente = null;
         this.contadorClaves = 0;
 
-        //Inicializar listas con capacidad apropiada
+        //Prellena con valores nulos la lista de claves según el tipo de nodo
         if (esHoja) {
-            //Nodos hoja: pueden tener hasta (orden-1) claves
+            //Nodos hoja pueden almacenar hasta orden-1 claves
             for (int i = 0; i < orden - 1; i++) {
                 this.claves.add(null);
             }
         } else {
-            //Nodos internos: pueden tener hasta (orden-1) claves y orden hijos
+            //Nodos internos almacenan hasta orden-1 claves y orden hijos
             for (int i = 0; i < orden - 1; i++) {
                 this.claves.add(null);
             }
@@ -40,31 +48,33 @@ public class BNodePlus<E extends Comparable<E>> {
             }
         }
 
+        //Asigna un identificador único al nodo recién creado
         asignarId();
     }
 
-    //Verifica si el nodo está lleno
+    //Verifica si el nodo alcanzó su capacidad máxima de claves
     public boolean isFull() {
         return this.contadorClaves == this.orden - 1;
     }
 
-    //Verifica si el nodo está vacío
+    //Comprueba si el nodo no contiene ninguna clave almacenada
     public boolean isEmpty() {
         return this.contadorClaves == 0;
     }
 
-    //Busca una clave en el nodo y retorna su posición
+    //Busca una clave específica en el nodo y retorna su posición mediante referencia
     public boolean searchKey(E clave, int[] posicion) {
         int i = 0;
 
-        //Busca posición correcta comparando con claves existentes
+        //Recorre las claves existentes hasta encontrar la posición correcta
         while (i < this.contadorClaves && clave.compareTo(this.claves.get(i)) > 0) {
             i++;
         }
 
+        //Almacena la posición encontrada en el array de referencia
         posicion[0] = i;
 
-        //Verifica si la clave fue encontrada exactamente
+        //Determina si la clave existe exactamente en la posición encontrada
         if (i < this.contadorClaves && clave.compareTo(this.claves.get(i)) == 0) {
             return true; //Clave encontrada
         } else {
@@ -72,7 +82,7 @@ public class BNodePlus<E extends Comparable<E>> {
         }
     }
 
-    //Obtiene una clave por índice
+    //Obtiene la clave almacenada en el índice especificado del nodo
     public E getKey(int indice) {
         if (indice >= 0 && indice < this.contadorClaves) {
             return this.claves.get(indice);
@@ -80,7 +90,7 @@ public class BNodePlus<E extends Comparable<E>> {
         return null;
     }
 
-    //Obtiene un hijo por índice -> solo para nodos internos
+    //Retorna el nodo hijo ubicado en el índice dado para nodos internos
     public BNodePlus<E> getChild(int indice) {
         if (!this.esHoja && indice >= 0 && indice < this.hijos.size()) {
             return this.hijos.get(indice);
@@ -88,10 +98,10 @@ public class BNodePlus<E extends Comparable<E>> {
         return null;
     }
 
-    //Establece un hijo en una posición específica -> solo para nodos internos
+    //Establece un nodo hijo en la posición especificada para nodos internos
     public void setChild(int indice, BNodePlus<E> hijo) {
         if (!this.esHoja) {
-            // Expandir ArrayList si no tiene suficiente capacidad
+            //Expande el ArrayList si el índice excede el tamaño actual
             while (this.hijos.size() <= indice) {
                 this.hijos.add(null);
             }
@@ -99,16 +109,16 @@ public class BNodePlus<E extends Comparable<E>> {
         }
     }
 
-    //Inserta una clave manteniendo el orden ascendente
+    //Inserta una clave nueva manteniendo el orden ascendente en el nodo
     public void insertKey(E clave) {
         int position = 0;
 
-        //Encontrar posición de inserción manteniendo orden
+        //Localiza la posición correcta para insertar manteniendo el orden
         while (position < this.contadorClaves && clave.compareTo(this.claves.get(position)) > 0) {
             position++;
         }
 
-        //Desplazar claves hacia la derecha para hacer espacio
+        //Desplaza todas las claves hacia la derecha para crear espacio
         for (int i = this.contadorClaves; i > position; i--) {
             if (this.claves.size() <= i) {
                 this.claves.add(null);
@@ -116,7 +126,7 @@ public class BNodePlus<E extends Comparable<E>> {
             this.claves.set(i, this.claves.get(i - 1));
         }
 
-        //Insertar nueva clave en posición correcta
+        //Coloca la nueva clave en la posición correcta calculada
         if (this.claves.size() <= position) {
             this.claves.add(null);
         }
@@ -124,11 +134,11 @@ public class BNodePlus<E extends Comparable<E>> {
         this.contadorClaves++;
     }
 
-    //Elimina una clave específica del nodo
+    //Elimina una clave específica del nodo buscándola por valor
     public void removeKey(E clave) {
         int posicion = -1;
 
-        //Localizar posición de la clave a eliminar
+        //Busca la posición exacta de la clave a eliminar
         for (int i = 0; i < this.contadorClaves; i++) {
             if (this.claves.get(i).compareTo(clave) == 0) {
                 posicion = i;
@@ -137,7 +147,7 @@ public class BNodePlus<E extends Comparable<E>> {
         }
 
         if (posicion != -1) {
-            //Desplazar claves hacia la izquierda para llenar hueco
+            //Desplaza todas las claves hacia la izquierda para llenar el hueco
             for (int i = posicion; i < this.contadorClaves - 1; i++) {
                 this.claves.set(i, this.claves.get(i + 1));
             }
@@ -145,10 +155,10 @@ public class BNodePlus<E extends Comparable<E>> {
         }
     }
 
-    //Elimina una clave por índice
+    //Remueve la clave ubicada en el índice especificado del nodo
     public void removeKeyIndex(int indice) {
         if (indice >= 0 && indice < this.contadorClaves) {
-            //Desplazar claves hacia la izquierda
+            //Mueve todas las claves hacia la izquierda desde el índice
             for (int i = indice; i < this.contadorClaves - 1; i++) {
                 this.claves.set(i, this.claves.get(i + 1));
             }
@@ -156,10 +166,10 @@ public class BNodePlus<E extends Comparable<E>> {
         }
     }
 
-    //Inserta un hijo en una posición específica -> solo para nodos internos
+    //Inserta un nodo hijo en la posición especificada para nodos internos
     public void insertChild(int indice, BNodePlus<E> hijo) {
         if (!this.esHoja) {
-            //Desplazar hijos hacia la derecha
+            //Desplaza todos los hijos hacia la derecha desde el índice
             for (int i = this.getChildCount(); i > indice; i--) {
                 if (this.hijos.size() <= i) {
                     this.hijos.add(null);
@@ -167,7 +177,7 @@ public class BNodePlus<E extends Comparable<E>> {
                 this.hijos.set(i, this.hijos.get(i - 1));
             }
 
-            //Insertar nuevo hijo
+            //Coloca el nuevo hijo en la posición especificada
             if (this.hijos.size() <= indice) {
                 this.hijos.add(null);
             }
@@ -175,55 +185,55 @@ public class BNodePlus<E extends Comparable<E>> {
         }
     }
 
-    //Elimina un hijo en la posición especificada -> solo para nodos internos
+    //Elimina el nodo hijo ubicado en la posición dada para nodos internos
     public void removeChild(int posicion) {
         if (!this.esHoja && posicion >= 0 && posicion < this.hijos.size()) {
-            //Mueve hijos hacia la izquierda
+            //Desplaza todos los hijos hacia la izquierda desde la posición
             for (int i = posicion; i < this.hijos.size() - 1; i++) {
                 this.hijos.set(i, this.hijos.get(i + 1));
             }
 
-            //Limpia última posición o reducir tamaño
+            //Limpia la última posición estableciéndola como null
             if (this.hijos.size() > 0) {
                 this.hijos.set(this.hijos.size() - 1, null);
             }
         }
     }
 
-    //Establece una clave en la posición especificada
+    //Modifica directamente la clave en la posición especificada del nodo
     public void setKey(int posicion, E clave) {
         if (posicion >= 0 && posicion < this.contadorClaves) {
             this.claves.set(posicion, clave);
         }
     }
 
-    //Inserta una clave en una posición específica (alternativa a insertKey)
+    //Inserta una clave en el índice exacto especificado sin buscar posición
     public void insertKeyIndex(int posicion, E clave) {
         if (posicion >= 0 && posicion <= this.contadorClaves && this.contadorClaves < this.orden - 1) {
-            //Expandir ArrayList si es necesario
+            //Expande el ArrayList si no tiene capacidad suficiente
             while (this.claves.size() <= this.contadorClaves) {
                 this.claves.add(null);
             }
 
-            //Mover claves hacia la derecha
+            //Mueve todas las claves hacia la derecha desde la posición
             for (int i = this.contadorClaves; i > posicion; i--) {
                 this.claves.set(i, this.claves.get(i - 1));
             }
 
-            //Insertar nueva clave
+            //Coloca la nueva clave en la posición exacta especificada
             this.claves.set(posicion, clave);
             this.contadorClaves++;
         }
     }
 
-
-    //Cuenta hijos no nulos del nodo
+    //Cuenta el número total de hijos no nulos en el nodo
     public int getChildCount() {
         if (this.esHoja) {
             return 0;
         }
 
         int contador = 0;
+        //Recorre hasta encontrar el último hijo no nulo consecutivo
         for (int i = 0; i <= this.contadorClaves; i++) {
             if (i < this.hijos.size() && this.hijos.get(i) != null) {
                 contador = i + 1;
@@ -232,7 +242,7 @@ public class BNodePlus<E extends Comparable<E>> {
         return contador;
     }
 
-    //Obtiene el número mínimo de claves permitidas
+    //Calcula el número mínimo de claves requeridas según el tipo de nodo
     public int getMinKeys() {
         if (this.esHoja) {
             return (this.orden - 1) / 2; //Para nodos hoja
@@ -241,31 +251,34 @@ public class BNodePlus<E extends Comparable<E>> {
         }
     }
 
-    //Verifica si el nodo tiene el mínimo de claves requeridas
+    //Verifica si el nodo cumple con el mínimo de claves requeridas
     public boolean hasMinKeys() {
         return this.contadorClaves >= getMinKeys();
     }
 
-    //Métodos para el enlace de nodos hoja
+    //Obtiene la referencia al siguiente nodo hoja en la secuencia horizontal
     public BNodePlus<E> getNext() {
         return this.siguiente;
     }
 
+    //Establece el enlace al siguiente nodo hoja para recorrido secuencial
     public void setNext(BNodePlus<E> siguiente) {
         if (this.esHoja) {
             this.siguiente = siguiente;
         }
     }
 
-    //Identificación única para nodos
+    //Reinicia el contador global de identificadores a cero
     public static void reiniciarContadorId() {
         contadorId = 0;
     }
 
+    //Asigna un identificador único incrementando el contador global
     private void asignarId() {
         this.idNodo = ++contadorId;
     }
 
+    //Retorna el identificador del nodo formateado como cadena de dos dígitos
     public String getIdNode() {
         if (this.idNodo == 0) {
             asignarId();
@@ -273,26 +286,28 @@ public class BNodePlus<E extends Comparable<E>> {
         return String.format("%02d", this.idNodo);
     }
 
+    //Retorna verdadero si el nodo es una hoja terminal
     public boolean esHoja() {
         return this.esHoja;
     }
 
+    //Obtiene el número actual de claves almacenadas en el nodo
     public int getContadorClaves() {
         return this.contadorClaves;
     }
 
-    //Representación en cadena del nodo
+    //Genera una representación textual del nodo mostrando tipo y claves
     public String toString() {
         StringBuilder resultado = new StringBuilder();
 
-        //Indicar tipo de nodo
+        //Identifica el tipo de nodo en la representación
         if (this.esHoja) {
             resultado.append("Nodo Hoja[");
         } else {
             resultado.append("Nodo interno[");
         }
 
-        //Mostrar claves
+        //Construye la lista de claves separadas por comas
         for (int i = 0; i < this.contadorClaves; i++) {
             if (i > 0) {
                 resultado.append(", ");
@@ -302,12 +317,11 @@ public class BNodePlus<E extends Comparable<E>> {
 
         resultado.append("]");
 
-        //Para nodos hoja, mostrar si hay enlace al siguiente
+        //Muestra el enlace al siguiente nodo para nodos hoja
         if (this.esHoja && this.siguiente != null) {
             resultado.append(" -> ").append(this.siguiente.getIdNode());
         }
 
         return resultado.toString();
     }
-
 }

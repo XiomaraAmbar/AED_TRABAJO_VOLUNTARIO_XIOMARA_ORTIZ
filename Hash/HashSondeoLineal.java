@@ -198,6 +198,25 @@ public class HashSondeoLineal<E> {
         return false; //No encontrado después de recorrer toda la tabla
     }
 
+    //Método para obtener elemento por índice
+    public E obtenerPorIndice(int indice) {
+        if (indice < 0 || indice >= listaHash.size()) {
+            return null;
+        }
+        return listaHash.get(indice);
+    }
+
+    //Método para obtener todos los elementos no nulos
+    public ArrayList<E> obtenerTodosLosElementos() {
+        ArrayList<E> elementos = new ArrayList<>();
+        for (E elemento : listaHash) {
+            if (elemento != null) {
+                elementos.add(elemento);
+            }
+        }
+        return elementos;
+    }
+
     //Método para redimensionar la tabla (rehashing)
     private void rehashing() {
         System.out.println("Rehashing... Factor de carga: " + factorCarga());

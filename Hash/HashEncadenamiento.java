@@ -247,4 +247,32 @@ public class HashEncadenamiento<E> {
     public int getModulo() {
         return modulo;
     }
+
+    //Método para buscar una clave y retornar el elemento si se encuentra
+    public E obtenerPorClave(E clave) throws MensajeException {
+        if (clave == null) return null;
+        int indice = principal(clave);
+        ListaEnlazada<E> listaTemporal = listaHash.get(indice);
+        //Recorrer la lista para encontrar el elemento que es 'equals' a la clave
+        for (int i = 0; i < listaTemporal.length(); i++) {
+            E elemento = listaTemporal.searchK(i);
+            if (elemento != null && elemento.equals(clave)) { //Usar equals para comparar el contenido
+                return elemento;
+            }
+        }
+        return null; //No encontrado
+    }
+
+    //Método para obtener todos los elementos no nulos (necesario para mostrarProductosYStocks)
+    public ArrayList<E> obtenerTodosLosElementos() throws MensajeException {
+        ArrayList<E> todos = new ArrayList<>();
+        for (ListaEnlazada<E> lista : listaHash) {
+            if (!lista.isEmpty()) {
+                for (int i = 0; i < lista.length(); i++) {
+                    todos.add(lista.searchK(i));
+                }
+            }
+        }
+        return todos;
+    }
 }

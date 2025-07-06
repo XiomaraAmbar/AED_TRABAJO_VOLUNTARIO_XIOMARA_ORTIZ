@@ -4,32 +4,6 @@ import BinarySearchTree.*;
 import Excepciones.*;
 
 public class AVLTree<E extends Comparable<E>> implements BinarySearchTree<E> {
-
-    class AVLNodo<E> extends NodoTree<E> {
-        protected int factorBalance;
-
-        public AVLNodo(E dato) {
-            super(dato);
-            this.factorBalance = 0;
-        }
-
-        //Métodos con tipos correctos heredados
-        public AVLNodo<E> getIzquierdo() {
-            return (AVLNodo<E>) super.getIzquierdo();
-        }
-
-        public AVLNodo<E> getDerecho() {
-            return (AVLNodo<E>) super.getDerecho();
-        }
-
-        public String toString() {
-            return "AVLNodo{" +
-                    "valor=" + this.getValor() +
-                    ", factorBalance=" + factorBalance +
-                    '}';
-        }
-    }
-
     private boolean altura;
     private AVLNodo<E> raiz;
     private int size;
