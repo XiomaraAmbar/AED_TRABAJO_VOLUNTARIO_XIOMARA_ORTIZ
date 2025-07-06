@@ -1,4 +1,4 @@
-package modelo;
+package Inventario;
 
 import Excepciones.*;
 import AVLTree.AVLTree;
@@ -36,9 +36,17 @@ public class SistemaInventario {
         this.hashCategorias = new HashSondeoLineal<>(capacidadHashCategoriasCalculada);
         this.arbolCategoriasProductos = new AVLTree<CategoriaData>(); // El AVL no tiene tamaño fijo por constructor
         this.hashProductosGlobal = new HashEncadenamiento<>(capacidadHashEncadenamientoCalculada);
-        this.matrizStocks = new MatrizDispersa<>(numMaxProductosMatriz, 1, 0);
+        this.matrizStocks = new MatrizDispersa<>(numMaxProductosMatriz + 50, 1, 0);
         this.mapeoCodigoProductoFila = new HashEncadenamiento<>(capacidadHashEncadenamientoCalculada);
 
+    }
+
+    public int getCapacidadDisponible() {
+        return matrizStocks.getFilas() - proximaFilaDisponibleMatriz;
+    }
+
+    public boolean tieneCapacidadDisponible() {
+        return proximaFilaDisponibleMatriz < matrizStocks.getFilas();
     }
 
     public int getOrdenBTreePlus() {
@@ -165,6 +173,12 @@ public class SistemaInventario {
             return false;
         }
 
+        // VALIDACIÓN AGREGADA: Verificar si hay espacio en la matriz
+        if (proximaFilaDisponibleMatriz >= matrizStocks.getFilas()) {
+            System.err.println("Error: No hay más espacio en la matriz de stocks. Capacidad máxima alcanzada (" + matrizStocks.getFilas() + " productos).");
+            return false;
+        }
+
         // 1. Insertar en el BTreePlus de su categoría
         categoriaDelProducto.productosPorCodigo.insert(producto);
 
@@ -182,10 +196,9 @@ public class SistemaInventario {
             return false;
         }
 
-
         // 3. Actualizar Matriz Dispersa de Stocks
         // Asignar una fila al producto si es nuevo
-        Integer filaAsignada = getFilaProductoMatriz(producto.getCodigoProducto()); // Este sigue siendo válido
+        Integer filaAsignada = getFilaProductoMatriz(producto.getCodigoProducto());
         if (filaAsignada == null) {
             filaAsignada = proximaFilaDisponibleMatriz++;
             // AHORA: Insertamos un objeto ProductoFilaMapping en el HashEncadenamiento
@@ -193,12 +206,30 @@ public class SistemaInventario {
                 mapeoCodigoProductoFila.insertarClave(new ProductoFilaMapeo(producto.getCodigoProducto(), filaAsignada));
             } catch (MensajeException e) {
                 System.err.println("Error al mapear producto a fila en matriz: " + e.getMessage());
-                // Considerar si es un error fatal. Por ahora, el producto se insertó pero su stock no se mapeó.
+                // Revertir cambios si falla el mapeo
+                proximaFilaDisponibleMatriz--; // Revertir el incremento
+                hashProductosGlobal.eliminarClave(producto);
+                try { categoriaDelProducto.productosPorCodigo.remove(producto); } catch (Exception ignored) {}
+                return false;
             }
         }
-        matrizStocks.establecer(filaAsignada, COLUMNA_STOCK, producto.getStockDisponible());
 
-        System.out.println("Producto '" + producto.getNombre() + "' insertado correctamente.");
+        // Establecer el stock en la matriz
+        try {
+            matrizStocks.establecer(filaAsignada, COLUMNA_STOCK, producto.getStockDisponible());
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Error: Fila " + filaAsignada + " fuera de rango en matriz de stocks. " + e.getMessage());
+            // Revertir todos los cambios
+            if (filaAsignada == proximaFilaDisponibleMatriz - 1) {
+                proximaFilaDisponibleMatriz--;
+            }
+            mapeoCodigoProductoFila.eliminarClave(new ProductoFilaMapeo(producto.getCodigoProducto()));
+            hashProductosGlobal.eliminarClave(producto);
+            try { categoriaDelProducto.productosPorCodigo.remove(producto); } catch (Exception ignored) {}
+            return false;
+        }
+
+        System.out.println("Producto '" + producto.getNombre() + "' insertado correctamente en la fila " + filaAsignada + ".");
         return true;
     }
 

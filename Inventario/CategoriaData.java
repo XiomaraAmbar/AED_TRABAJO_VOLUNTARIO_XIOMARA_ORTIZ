@@ -1,11 +1,10 @@
-package modelo;
+package Inventario;
 
 import BTreePlus.BTreePlus;
 
-// Clase auxiliar para el nodo del AVL
 class CategoriaData implements Comparable<CategoriaData> {
     public int indiceHashCategoria;
-    public String nombreCategoriaOriginal; // Para referencia fácil
+    public String nombreCategoriaOriginal; //Para referencia fácil
     public BTreePlus<Producto> productosPorCodigo;
 
     public CategoriaData(int indiceHashCategoria, String nombreCategoria, int ordenBTreePlus) {

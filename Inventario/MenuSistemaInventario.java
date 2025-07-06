@@ -1,4 +1,4 @@
-package modelo;
+package Inventario;
 
 import java.util.Scanner;
 import LinkedList.MensajeException; // Para manejar excepciones de tu ListaEnlazada/AVL

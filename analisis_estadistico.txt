@@ -1,0 +1,62 @@
+ANÁLISIS ESTADÍSTICO DE RENDIMIENTO
+=====================================
+
+Operación: Insercion
+------------------------------
+Tiempo promedio: 3.15 ms
+Desviación estándar: 3.51 ms
+Mínimo: 0.16 ms
+Máximo: 10.11 ms
+Mediana: 1.49 ms
+Coeficiente de variación: 111.42%
+
+Operación: AVLSearch
+------------------------------
+Tiempo promedio: 3.59 ms
+Desviación estándar: 0.76 ms
+Mínimo: 2.28 ms
+Máximo: 4.55 ms
+Mediana: 3.59 ms
+Coeficiente de variación: 21.06%
+
+Operación: BTreeSearch
+------------------------------
+Tiempo promedio: 3.57 ms
+Desviación estándar: 0.77 ms
+Mínimo: 2.38 ms
+Máximo: 4.77 ms
+Mediana: 3.44 ms
+Coeficiente de variación: 21.65%
+
+Operación: Eliminacion
+------------------------------
+Tiempo promedio: 3.10 ms
+Desviación estándar: 3.49 ms
+Mínimo: 0.11 ms
+Máximo: 10.02 ms
+Mediana: 1.49 ms
+Coeficiente de variación: 112.54%
+
+Operación: HashLookup
+------------------------------
+Tiempo promedio: 1.01 ms
+Desviación estándar: 0.21 ms
+Mínimo: 0.76 ms
+Máximo: 1.28 ms
+Mediana: 0.95 ms
+Coeficiente de variación: 20.34%
+
+Operación: Busqueda
+------------------------------
+Tiempo promedio: 3.08 ms
+Desviación estándar: 3.46 ms
+Mínimo: 0.05 ms
+Máximo: 9.91 ms
+Mediana: 1.52 ms
+Coeficiente de variación: 112.26%
+
+ANÁLISIS DE CORRELACIÓN
+========================
+Correlación Tamaño-Tiempo: 0.744
+Correlación moderada positiva - El tiempo tiende a aumentar con el tamaño
+Correlación Tamaño-Memoria: 1.000

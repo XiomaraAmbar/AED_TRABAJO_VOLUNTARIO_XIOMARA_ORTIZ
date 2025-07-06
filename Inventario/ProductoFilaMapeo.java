@@ -1,4 +1,4 @@
-package modelo;
+package Inventario;
 
 public class ProductoFilaMapeo implements Comparable<ProductoFilaMapeo> {
     private String codigoProducto;
@@ -9,10 +9,10 @@ public class ProductoFilaMapeo implements Comparable<ProductoFilaMapeo> {
         this.filaMatriz = filaMatriz;
     }
 
-    // Constructor para BÚSQUEDA o ELIMINACIÓN
+    //Constructor para BÚSQUEDA o ELIMINACIÓN
     public ProductoFilaMapeo(String codigoProducto) {
         this.codigoProducto = codigoProducto;
-        this.filaMatriz = null; // La fila no es relevante para la comparación, solo el código
+        this.filaMatriz = null; //La fila no es relevante para la comparación, solo el código
     }
 
     public String getCodigoProducto() {

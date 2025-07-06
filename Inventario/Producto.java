@@ -1,4 +1,4 @@
-package modelo;
+package Inventario;
 
 public class Producto implements Comparable<Producto> {
     private String codigoProducto;
